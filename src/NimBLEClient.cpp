@@ -1205,7 +1205,7 @@ int NimBLEClient::handleGapEvent(struct ble_gap_event* event, void* arg) {
                 // pClient->onOobPairingRequest(pkey.oob);
                 // rc = ble_sm_inject_io(event->passkey.conn_handle, &pkey);
                 // NIMBLE_LOGD(LOG_TAG, "ble_sm_inject_io result: %d", rc);
-            } else if (event->passkey.params.action == BLE_SM_IOACT_INPUT) {
+            } else if (event->passkey.params.action == BLE_SM_IOACT_INPUT || event->passkey.params.action == BLE_SM_IOACT_DISP) {
                 NIMBLE_LOGD(LOG_TAG, "Enter the passkey");
                 pClient->m_pClientCallbacks->onPassKeyEntry(peerInfo);
             } else if (event->passkey.params.action == BLE_SM_IOACT_NONE) {
