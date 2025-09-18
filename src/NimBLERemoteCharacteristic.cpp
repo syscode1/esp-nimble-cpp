@@ -132,6 +132,63 @@ bool NimBLERemoteCharacteristic::retrieveDescriptors(NimBLEDescriptorFilter* pFi
     return true;
 } // retrieveDescriptors
 
+bool NimBLERemoteCharacteristic::retrieveDescriptors2(NimBLEDescriptorFilter* pFilter) const {
+    NIMBLE_LOGD(LOG_TAG, ">> retrieveDescriptors2() for characteristic: %s", getUUID().toString().c_str());
+
+    const auto pSvc = getRemoteService();
+    uint16_t endHandle = pSvc->getEndHandle();
+
+    // Find the handle of the next characteristic to limit the descriptor search range.
+    const auto& chars = pSvc->getCharacteristics(false);
+    for (auto it = chars.begin(); it != chars.end(); ++it) {
+        if ((*it)->getHandle() == this->getHandle()) {
+            auto next_it = std::next(it);
+            if (next_it != chars.end()) {
+                endHandle = (*next_it)->getHandle() - 1;
+                NIMBLE_LOGD(LOG_TAG, "Search range limited to handle 0x%04X", endHandle);
+            }
+            break;
+        }
+    }
+
+    // If this is the last handle then there are no descriptors
+    if (getHandle() == endHandle) {
+        NIMBLE_LOGD(LOG_TAG, "<< retrieveDescriptors2(): found 0 descriptors.");
+        return true;
+    }
+
+    NimBLETaskData         taskData(const_cast<NimBLERemoteCharacteristic*>(this));
+    NimBLEDescriptorFilter defaultFilter{nullptr, nullptr, &taskData};
+    if (pFilter == nullptr) {
+        pFilter = &defaultFilter;
+    }
+
+    int rc = ble_gattc_disc_all_dscs(getClient()->getConnHandle(),
+                                     getHandle(),
+                                     endHandle, // Use the correctly calculated end handle
+                                     NimBLERemoteCharacteristic::descriptorDiscCB,
+                                     pFilter);
+    if (rc != 0) {
+        NIMBLE_LOGE(LOG_TAG, "ble_gattc_disc_all_dscs: rc=%d %s", rc, NimBLEUtils::returnCodeToString(rc));
+        return false;
+    }
+
+    auto prevDscCount = m_vDescriptors.size();
+    NimBLEUtils::taskWait(taskData, BLE_NPL_TIME_FOREVER);
+    rc = ((NimBLETaskData*)pFilter->taskData)->m_flags;
+    if (rc != BLE_HS_EDONE) {
+        NIMBLE_LOGE(LOG_TAG, "<< retrieveDescriptors2(): failed: rc=%d %s", rc, NimBLEUtils::returnCodeToString(rc));
+        return false;
+    }
+
+    if (m_vDescriptors.size() > prevDscCount) {
+        pFilter->dsc = m_vDescriptors.back();
+    }
+
+    NIMBLE_LOGD(LOG_TAG, "<< retrieveDescriptors2(): found %d descriptors.", m_vDescriptors.size() - prevDscCount);
+    return true;
+} // retrieveDescriptors2
+
 /**
  * @brief Get the descriptor instance with the given UUID that belongs to this characteristic.
  * @param [in] uuid The UUID of the descriptor to find.
@@ -184,7 +241,8 @@ Done:
 const std::vector<NimBLERemoteDescriptor*>& NimBLERemoteCharacteristic::getDescriptors(bool refresh) const {
     if (refresh) {
         deleteDescriptors();
-        retrieveDescriptors();
+        //retrieveDescriptors();
+        retrieveDescriptors2();
     }
 
     return m_vDescriptors;
@@ -382,6 +440,10 @@ std::string NimBLERemoteCharacteristic::toString() const {
 
     return res;
 } // toString
+
+uint8_t NimBLERemoteCharacteristic::getProperties() const {
+	return m_properties;
+}
 
 NimBLEClient* NimBLERemoteCharacteristic::getClient() const {
     return getRemoteService()->getClient();
