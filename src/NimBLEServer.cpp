@@ -601,7 +601,10 @@ int NimBLEServer::handleGapEvent(ble_gap_event* event, void* arg) {
             } else if (event->passkey.params.action == BLE_SM_IOACT_NONE) {
                 NIMBLE_LOGD(LOG_TAG, "No passkey action required");
             }
-
+            else if(event->passkey.params.action == BLE_SM_IOACT_INPUT) {
+                NIMBLE_LOGI(LOG_TAG, "BLE_SM_IOACT_INPUT!!!!");
+                pServer->m_pServerCallbacks->onPassKeyRequest(peerInfo);
+            }
             break;
         } // BLE_GAP_EVENT_PASSKEY_ACTION
 
@@ -1032,4 +1035,7 @@ void NimBLEServerCallbacks::onPhyUpdate(NimBLEConnInfo& connInfo, uint8_t txPhy,
     NIMBLE_LOGD("NimBLEServerCallbacks", "onPhyUpdate: default, txPhy: %d, rxPhy: %d", txPhy, rxPhy);
 } // onPhyUpdate
 
+void NimBLEServerCallbacks::onPassKeyRequest(NimBLEConnInfo& connInfo) {
+    NIMBLE_LOGD("NimBLEServerCallbacks", "onPassKeyRequest: default");
+} // onPassKeyRequest
 #endif // CONFIG_BT_NIMBLE_ENABLED && MYNEWT_VAL(BLE_ROLE_PERIPHERAL)

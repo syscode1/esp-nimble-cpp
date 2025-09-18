@@ -221,6 +221,7 @@ class NimBLEServerCallbacks {
      * * BLE_GAP_LE_PHY_CODED
      */
     virtual void onPhyUpdate(NimBLEConnInfo& connInfo, uint8_t txPhy, uint8_t rxPhy);
+    virtual void onPassKeyRequest(NimBLEConnInfo& connInfo);
 }; // NimBLEServerCallbacks
 
 #endif // CONFIG_BT_NIMBLE_ENABLED && MYNEWT_VAL(BLE_ROLE_PERIPHERAL)
