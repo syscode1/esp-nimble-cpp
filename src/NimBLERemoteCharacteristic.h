@@ -47,6 +47,7 @@ class NimBLERemoteCharacteristic : public NimBLERemoteValueAttribute {
     bool                       canIndicate() const;
     bool                       canWriteSigned() const;
     bool                       hasExtendedProps() const;
+    uint8_t                    getProperties() const;
     NimBLEClient*              getClient() const override;
 
     typedef std::function<void(NimBLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify)> notify_callback;
@@ -68,6 +69,7 @@ class NimBLERemoteCharacteristic : public NimBLERemoteValueAttribute {
 
     bool setNotify(uint16_t val, notify_callback notifyCallback = nullptr, bool response = true) const;
     bool retrieveDescriptors(NimBLEDescriptorFilter* pFilter = nullptr) const;
+    bool retrieveDescriptors2(NimBLEDescriptorFilter* pFilter = nullptr) const;
 
     static int descriptorDiscCB(
         uint16_t connHandle, const ble_gatt_error* error, uint16_t chrHandle, const ble_gatt_dsc* dsc, void* arg);
