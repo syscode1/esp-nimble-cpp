@@ -86,6 +86,10 @@ int NimBLERemoteCharacteristic::descriptorDiscCB(
     return rc;
 }
 
+uint8_t NimBLERemoteCharacteristic::getProperties() const {
+        return m_properties;
+}
+
 /**
  * @brief Populate the descriptors (if any) for this characteristic.
  * @param [in] pFilter Pointer to a filter containing pointers to descriptor, UUID, and task data.

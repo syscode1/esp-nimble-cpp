@@ -58,6 +58,7 @@ class NimBLERemoteCharacteristic : public NimBLERemoteValueAttribute {
     std::vector<NimBLERemoteDescriptor*>::iterator end() const;
     NimBLERemoteDescriptor*                        getDescriptor(const NimBLEUUID& uuid) const;
     const std::vector<NimBLERemoteDescriptor*>&    getDescriptors(bool refresh = false) const;
+    uint8_t getProperties() const;
 
   private:
     friend class NimBLEClient;
